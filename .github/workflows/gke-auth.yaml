@@ -1,0 +1,33 @@
+name: GKE DNS-based endpoint
+on: workflow_dispatch
+jobs:
+  GKE-DNS-endpoint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        project_id: 'jetstack-paul'
+        workload_identity_provider: 'projects/993897508389/locations/global/workloadIdentityPools/github/providers/github-provider'
+
+    - id: 'get-credentials'
+      uses: 'google-github-actions/get-gke-credentials@v2'
+      with:
+        cluster_name: 'example-auto-priv'
+        location: 'europe-west2'
+        use_dns_based_endpoint: 'true'
+
+    - id: 'whoami'
+      run: 'kubectl auth whoami'
+
+    - id: 'cluster-info'
+      run: 'kubectl cluster-info'
+
+    - id: 'gke-endpoint'
+      run: 'gcloud container clusters describe example-auto-priv --location europe-west2 --format="value(endpoint)"'
+
+    - id: 'gke-dns-endpoint'
+      run: 'gcloud container clusters describe example-auto-priv --location europe-west2 --format="value(controlPlaneEndpointsConfig.dnsEndpointConfig.endpoint)"'
